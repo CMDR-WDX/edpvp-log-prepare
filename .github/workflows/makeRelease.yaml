@@ -68,6 +68,14 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/download-artifact@master
+        with:
+          name: edpvp-log-prepare-windows
+          path: "./out/win"
+      - uses: actions/download-artifact@master
+        with:
+          name: edpvp-log-prepare-linux
+          path: "./out/linux"
       - name: List
         run: |
           tree
