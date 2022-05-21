@@ -2,8 +2,6 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - "*"
 jobs:
@@ -76,11 +74,15 @@ jobs:
         with:
           name: edpvp-log-prepare-linux
           path: "./out/linux"
+      - name: ZIP up
+        run: |
+          zip -r windows.zip ./out/win
+          zip -r linux.zip ./out/linux
       - name: List
         run: |
           tree
       - uses: ncipollo/release-action@v1
         with:
-          artifacts: ./out/linux, ./out/win
+          artifacts: windows.zip, linux.zip
           token: ${{ secrets.GITHUB_TOKEN }}
           allowUpdates: true
