@@ -38,7 +38,7 @@ func createFileChunks(fileNames []string) [][]string {
 	return returnArray
 }
 
-func ZipUpFiles(directory string, cfg config.AppConfig) {
+func ZipUpFiles(directory string, cfg config.AppConfig) string {
 	dirStat, err := ioutil.ReadDir(directory)
 
 	if err != nil {
@@ -51,7 +51,8 @@ func ZipUpFiles(directory string, cfg config.AppConfig) {
 	}
 
 	namePrefix := generateNamePrefix()
-	err = os.MkdirAll(filepath.Join(cfg.OutputDir, namePrefix), 0633)
+	outputPath := filepath.Join(cfg.OutputDir, namePrefix)
+	err = os.MkdirAll(outputPath, 0633)
 	if err != nil {
 		panic(err)
 	}
@@ -63,6 +64,7 @@ func ZipUpFiles(directory string, cfg config.AppConfig) {
 		color.Green("Building chunk " + name)
 		zipUpChunk(chunk, name)
 	}
+	return outputPath
 }
 
 func generateNamePrefix() string {

@@ -11,7 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
+import "github.com/skratchdot/open-golang/open"
 
 func aggregateLogFiles(config config.AppConfig) []string {
 	// Get all files in Log Directory
@@ -79,6 +81,11 @@ func MainCommand(command *cli.Command) {
 	}
 
 	relevantLogFiles := aggregateLogFiles(cfg)
+
+	if len(relevantLogFiles) == 0 {
+		color.Red("No relevant Log files were found. No ZIP has been generated...")
+	}
+
 	// Now that the relevant files are aggregated... create a Temporary Directory and copy over all relevant files
 	// This is done because maybe some file is holding the original file and renaming it would cause issues, etc
 	tempDir, err := ioutil.TempDir("", "edpvp-log-prepare-*")
@@ -86,10 +93,25 @@ func MainCommand(command *cli.Command) {
 		panic(err)
 	}
 	defer os.Remove(tempDir)
-	color.Red(tempDir)
+	color.White(tempDir)
 	moveRelevantFilesToTempDir(relevantLogFiles, tempDir)
 
-	zipper.ZipUpFiles(tempDir, cfg)
+	directoryPath := zipper.ZipUpFiles(tempDir, cfg)
+	cfg.LastExecutionTimeStamp = time.Now().Unix()
+	err = config.SetConfig(cfg)
+	if err != nil {
+		panic(err)
+	}
+	color.Blue("\n\nDone building ZIP files. Do you want to open the directory?")
+	color.Blue(directoryPath)
+	color.Green("Y/N")
+
+	if util.GetYesNo() {
+		err := open.Run(directoryPath)
+		if err != nil {
+			panic(err)
+		}
+	}
 
 }
 
