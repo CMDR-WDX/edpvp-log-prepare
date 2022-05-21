@@ -24,7 +24,7 @@ func main() {
 	}
 
 	color.Blue("Running edpvp-log-prepare v%s\n", VERSION)
-
+	CheckUpdate()
 	err = command.Run()
 	if err != nil {
 		command.Help().ShowHelp()
