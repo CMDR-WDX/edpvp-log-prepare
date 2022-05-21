@@ -62,16 +62,17 @@ jobs:
     needs:
       - build_linux
       - build_win
-    if: startsWith(github.ref, 'refs/tags/v')
+    #if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v2
       - name: List
-        run: tree | echo
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: edpvp-log-prepare-linux, edpvp-log-prepare-windows
-          token: ${{ secrets.GITHUB_TOKEN }}
-          allowUpdates: true
+        run: |
+          tree
+      #- uses: ncipollo/release-action@v1
+      #  with:
+      #    artifacts: edpvp-log-prepare-linux, edpvp-log-prepare-windows
+      #    token: ${{ secrets.GITHUB_TOKEN }}
+      #    allowUpdates: true
