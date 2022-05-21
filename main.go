@@ -9,7 +9,8 @@ import (
 )
 
 func main() {
-	mainCommand := cli.NewCommand("app", "app [command] [flags]", "dasdsaasd")
+	mainCommand := cli.NewCommand("app", "app", "The Default Command – "+
+		"Use it to build the ZIP files")
 	mainCommand.Do(cmd.MainCommand)
 
 	help, err := mainCommand.FindHelp(os.Args[1:])

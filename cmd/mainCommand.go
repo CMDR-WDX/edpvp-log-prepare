@@ -84,6 +84,7 @@ func MainCommand(command *cli.Command) {
 
 	if len(relevantLogFiles) == 0 {
 		color.Red("No relevant Log files were found. No ZIP has been generated...")
+		return
 	}
 
 	// Now that the relevant files are aggregated... create a Temporary Directory and copy over all relevant files
