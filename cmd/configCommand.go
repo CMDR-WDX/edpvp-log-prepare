@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"edpvp-log-prepare/config"
 	"edpvp-log-prepare/util"
+	"fmt"
 	"github.com/fatih/color"
 	"io"
 	"io/ioutil"
@@ -18,7 +19,7 @@ func doesDefaultEliteLogLocationExist() (bool, string) {
 	path := filepath.Join(
 		homeDir,
 		"Saved Games",
-		"Frontier Development",
+		"Frontier Developments",
 		"Elite Dangerous",
 	)
 	return checkIfDirectoryForEliteLogsExists(path), path
@@ -28,7 +29,11 @@ func doesDefaultEliteLogLocationExist() (bool, string) {
 func checkIfDirectoryForEliteLogsExists(path string) bool {
 	data, err := os.Stat(path)
 	if err != nil {
-		color.White("Tried to find the Elite Dangerous logs at '%s', but that Folder does not exist...", path)
+		fmt.Printf("Tried to find the Elite Dangerous logs at ")
+		color.Set(color.FgYellow)
+		fmt.Print(path)
+		color.Unset()
+		fmt.Print(", but that Folder does not exist...\n")
 		return false
 	}
 	if !data.IsDir() {
@@ -38,56 +43,64 @@ func checkIfDirectoryForEliteLogsExists(path string) bool {
 	return true
 }
 
-const CONFIG_LEN = 2
+const ConfigLen = 2
 
 func getNewLogFileLocation(reader *bufio.Reader) string {
 	exists, folderPath := doesDefaultEliteLogLocationExist()
 	if exists {
-		color.White("Found a Folder at '%s'. Should this be where I look for Elite logs?", folderPath)
+		fmt.Print("Found a Folder at ")
+		color.Set(color.FgYellow)
+		fmt.Print(folderPath)
+		color.Unset()
+		fmt.Println(" . Should this be where I look for Elite logs?")
 		color.Green("Y/N")
-	} else {
-		for !exists {
-			color.Green("Please Enter the Path to the Elite Log Directory...")
-			userInput, err := reader.ReadString('\n')
-			userInput = strings.Trim(userInput, "\n")
+		if util.GetYesNo(reader) {
+			return folderPath
+		}
+		exists = false
+	}
+
+	for !exists {
+		color.Green("Please Enter the Path to the Elite Log Directory...")
+		reader.Discard(reader.Buffered())
+		userInput, err := reader.ReadString('\n')
+		userInput = strings.Trim(userInput, "\r\n")
+		if err != nil {
+			if err == io.EOF {
+				continue // Wait again
+			}
+			if err.Error() == "unexpected newline" {
+				continue // Try again
+			}
+			panic(err)
+		}
+		existsUserInput := checkIfDirectoryForEliteLogsExists(userInput)
+		if existsUserInput {
+			// Check if any log files are present. If not, ask the user if they really want to use this folder
+			files, err := ioutil.ReadDir(userInput)
 			if err != nil {
-				if err == io.EOF {
-					continue // Wait again
-				}
-				if err.Error() == "unexpected newline" {
-					continue // Try again
-				}
 				panic(err)
 			}
-			existsUserInput := checkIfDirectoryForEliteLogsExists(userInput)
-			if existsUserInput {
-				// Check if any log files are present. If not, ask the user if they really want to use this folder
-				files, err := ioutil.ReadDir(userInput)
-				if err != nil {
-					panic(err)
+			doesContainLogFiles := false
+			for _, file := range files {
+				if file.IsDir() {
+					continue
 				}
-				doesContainLogFiles := false
-				for _, file := range files {
-					if file.IsDir() {
-						continue
-					}
-					if strings.HasSuffix(file.Name(), ".log") {
-						doesContainLogFiles = true
-						break
-					}
+				if strings.HasSuffix(file.Name(), ".log") {
+					doesContainLogFiles = true
+					break
 				}
-				if !doesContainLogFiles {
-					color.Red("The Folder you provided does no contain any .log files. Are you sure this is the" +
-						"correct folder?")
-					color.Green("Y/N")
-					if !util.GetYesNo() {
-						continue
-					}
-				}
-				exists = true
-				folderPath = userInput
-
 			}
+			if !doesContainLogFiles {
+				color.Red("The Folder you provided does no contain any .log files. Are you sure this is the" +
+					"correct folder?")
+				color.Green("Y/N")
+				if !util.GetYesNo(reader) {
+					continue
+				}
+			}
+			exists = true
+			folderPath = userInput
 		}
 	}
 	return folderPath
@@ -97,23 +110,23 @@ func BuildNewConfigFromScratch() (config.AppConfig, error) {
 	reader := bufio.NewReader(os.Stdin)
 	cfg := config.AppConfig{}
 	// Logs Location
-	color.Blue("\n\n\n[1/%d] === Elite Dangerous Logs Folder", CONFIG_LEN)
+	color.Blue("\n\n\n[1/%d] === Elite Dangerous Logs Folder", ConfigLen)
 	cfg.EliteLogPath = getNewLogFileLocation(reader)
 
-	color.Blue("\n\n\n[2/%d] === Output Directory", CONFIG_LEN)
+	color.Blue("\n\n\n[2/%d] === Output Directory", ConfigLen)
 	cfg.OutputDir = getNewOutputDir(cfg.EliteLogPath, reader)
 
-	color.Blue("\n\n\n[3/%d] === Whitelist CMDRs", CONFIG_LEN)
+	color.Blue("\n\n\n[3/%d] === Whitelist CMDRs", ConfigLen)
 	color.White("This tool can make sure that only Log Files from specific CMDRs are " +
 		"Zipped to be sent to the bot. Do you want to filter specific CMDRs? ")
 	color.Green("Y/N")
-	if util.GetYesNo() {
+	if util.GetYesNo(reader) {
 		cfg.CmdrInclude = getCommanderWhitelist(reader)
 	} else {
 		cfg.CmdrInclude = make([]string, 0)
 	}
 
-	color.Blue("\n\n\n[4/%d] === Set Last Logfile's Timestamp", CONFIG_LEN)
+	color.Blue("\n\n\n[4/%d] === Set Last Logfile's Timestamp", ConfigLen)
 	color.White("The tool will collect all logs from the last time you started the tool.\n" +
 		"As this is the first time you run this tool you can set a Date. Logs that have an older Timestamp in their Name" +
 		"as the given Date will be considered.\nPlease provide the Timestamp you wish to set. If you dont know what a " +
@@ -131,8 +144,9 @@ func getLastExecTimeStamp(reader *bufio.Reader) int64 {
 	for true {
 		color.Green("Please enter a Unix Timestamp...")
 		var timeStamp int64
+		reader.Discard(reader.Buffered())
 		var timeStampString, err = reader.ReadString('\n')
-		timeStampString = strings.Trim(timeStampString, "\n")
+		timeStampString = strings.Trim(timeStampString, "\r\n")
 
 		if err != nil {
 			if err.Error() == "unexpected newline" {
@@ -162,8 +176,9 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 	for true {
 		color.Green("Enter a list of CMDRs to include in the ZIP, seperated by commas")
 		color.White("Example:\nWDX, SomeOtherCmdr, SomeoneElse")
+		reader.Discard(reader.Buffered())
 		var userInput, err = reader.ReadString('\n')
-		userInput = strings.Trim(userInput, "\n")
+		userInput = strings.Trim(userInput, "\r\n")
 
 		if err != nil {
 			if err.Error() == "unexpected newline" {
@@ -177,7 +192,7 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 		if len(cmdrs) == 0 {
 			color.Yellow("No CMDRs entered. This will disable filtering. Is this okay?")
 			color.Green("Y/N")
-			if util.GetYesNo() {
+			if util.GetYesNo(reader) {
 				return make([]string, 0)
 			} else {
 				continue
@@ -191,7 +206,7 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 		}
 
 		color.Green("Is this correct? Y/N")
-		if util.GetYesNo() {
+		if util.GetYesNo(reader) {
 			return cmdrs
 		}
 	}
@@ -201,14 +216,16 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 
 func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 	returnFilePath := filepath.Join(logPath, "#edpvp")
-	color.White("This defines where the output ZIP files are located. This defaults to logLocation/#edpvp, or in"+
-		"your instance: \n %s", returnFilePath)
+	color.White("This defines where the output ZIP files are located. This defaults to logLocation/#edpvp, or in" +
+		" your instance: \n")
+	color.Yellow(returnFilePath)
 	color.Green("Is the default path okay? Y/N")
-	isInputOkay := util.GetYesNo()
+	isInputOkay := util.GetYesNo(reader)
 	for !isInputOkay {
 		color.Green("Please enter where you want the output ZIPs to be placed")
+		reader.Discard(reader.Buffered())
 		userInput, err := reader.ReadString('\n')
-		userInput = strings.Trim(userInput, "\n")
+		userInput = strings.Trim(userInput, "\r\n")
 
 		if err != nil {
 			if err.Error() == "unexpected newline" {
@@ -220,10 +237,10 @@ func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 		userInputData, err := os.Stat(userInput)
 		if err != nil {
 			if os.IsNotExist(err) {
-				color.Yellow("%s does not exists. The program will try to create that directory"+
-					"when saving files. Is that okay?", userInputData)
+				color.Yellow("%s does not exists. The program will try to create that directory "+
+					"when saving files. Is that okay?", userInput)
 				color.Green("Y/N")
-				if util.GetYesNo() {
+				if util.GetYesNo(reader) {
 					returnFilePath = userInput
 					isInputOkay = true
 				}
@@ -235,7 +252,7 @@ func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 		} else {
 			color.White("Found Directory %s", userInputData)
 			color.Green("Set this Directory as Output Directory? Y/N")
-			if util.GetYesNo() {
+			if util.GetYesNo(reader) {
 				returnFilePath = userInput
 				isInputOkay = true
 			}

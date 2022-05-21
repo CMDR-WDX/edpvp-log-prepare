@@ -1,14 +1,16 @@
 package util
 
 import (
-	"fmt"
+	"bufio"
 	"strings"
 )
 
-func GetYesNo() bool {
+func GetYesNo(reader *bufio.Reader) bool {
 	for true {
 		var userInput string
-		_, err := fmt.Scanln(&userInput)
+		reader.Discard(reader.Buffered())
+		userInput, err := reader.ReadString('\n')
+		userInput = strings.Trim(userInput, "\r\n")
 		if err != nil {
 			if err.Error() != "unexpected newline" {
 				panic(err)

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"edpvp-log-prepare/config"
 	"edpvp-log-prepare/util"
 	"edpvp-log-prepare/zipper"
@@ -107,7 +108,7 @@ func MainCommand(command *cli.Command) {
 	color.Blue(directoryPath)
 	color.Green("Y/N")
 
-	if util.GetYesNo() {
+	if util.GetYesNo(bufio.NewReader(os.Stdin)) {
 		err := open.Run(directoryPath)
 		if err != nil {
 			panic(err)
