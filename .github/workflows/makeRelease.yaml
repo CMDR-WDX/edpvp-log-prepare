@@ -6,12 +6,26 @@ on:
       - '*'
 
 jobs:
+  build_linux:
+    name: Build the Tool for Linux
+    uses: ../actions/build.yaml
+    with:
+      platform: ubuntu-latest
+      outputDirName: "edpvp-log-prepare-linux"
+
+  build_win:
+    name: Build the Tool for Windows
+    uses: ../actions/build.yaml
+    with:
+      platform: windows-latest
+      outputDirName: "edpvp-log-prepare-windows"
+
+
   publish:
-    uses:
-      - build.yaml
+
     needs:
-      - build-linux
-      - build-windows
+      - build_linux
+      - build_win
     runs-on: ubuntu-latest
     permissions:
       contents: write

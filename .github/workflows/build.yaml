@@ -10,57 +10,9 @@ on:
       - master
 
 jobs:
-
-  build-linux:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.18.0'
-      # Go Setup
-      - name: Setup Go
-        uses: actions/checkout@v2
-
-
-      # Build
-      - name: Install Deps
-        run: |
-          mkdir out
-          cd out
-          go build ..
-          cd ..
-
-      - name: Bundle
-        uses: actions/upload-artifact@v2
-        with:
-          name: edpvp-log-prepare-linux
-          path: "./out"
-
-  build-windows:
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
-        with:
-          go-version: '1.18.0'
-      # Go Setup
-      - name: Setup Go
-        uses: actions/checkout@v2
-
-
-      # Build
-      - name: Install Deps
-        run: |
-          mkdir out
-          cd out
-          go build ..
-          cd ..
-
-      - name: Bundle
-        uses: actions/upload-artifact@v2
-        with:
-          name: edpvp-log-prepare-windows
-          path: "./out"
+  build_linux:
+    name: Build the Tool for Linux
+    uses: ../actions/build.yaml
+    with:
+      platform: ubuntu-latest
+      outputDirName: "edpvp-log-prepare-linux"
