@@ -14,7 +14,6 @@ func BuildConfigDirIfNotExistsAndReturnDir() string {
 		panic(err)
 	}
 	appConfigDir := filepath.Join(allConfigDir, "edpvpLogPrepare")
-	fmt.Println(appConfigDir)
 
 	_, err = os.Stat(appConfigDir)
 

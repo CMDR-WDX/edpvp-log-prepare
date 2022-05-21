@@ -37,6 +37,10 @@ func CheckUpdate() {
 	compareWithCurrentVersion(versionAsString, VERSION)
 }
 
+func PrettyPrintVersion(version string) string {
+	return strings.Replace(version, "-", "pre-", -1)
+}
+
 func compareWithCurrentVersion(online string, local string) {
 
 	onlineArr := strings.Split(online, ".")
@@ -64,14 +68,15 @@ func compareWithCurrentVersion(online string, local string) {
 	for i := 0; i < length; i++ {
 		localVal, _ := strconv.Atoi(localArr[i])
 		onlineVal, _ := strconv.Atoi(onlineArr[i])
-		if localVal-onlineVal > 0 {
+		if onlineVal > localVal {
 			isOnlineMoreRecent = true
 			break
 		}
 	}
+
 	if isOnlineMoreRecent {
 		color.Yellow("*** NEW VERSION AVAILABLE ***\nCurrent Version: v%s\nAvailable Version: v%s\n"+
-			"Get the Update at https://github.com/CMDR-WDX/edpvp-log-prepare/releases\n "+
-			"***                       ***", online, local)
+			"Get the Update at https://github.com/CMDR-WDX/edpvp-log-prepare/releases\n"+
+			"***                       ***", PrettyPrintVersion(local), PrettyPrintVersion(online))
 	}
 }

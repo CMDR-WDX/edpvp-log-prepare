@@ -21,10 +21,11 @@ func createFileChunks(fileNames []string) [][]string {
 	for _, file := range fileNames {
 		fileStat, _ := os.Stat(file)
 		sizeWithCurrentFile := currentChunkSize + fileStat.Size()
-		if sizeWithCurrentFile > 1024*1024*10 && len(currentChunk) > 0 { // 10 MByte
+		var fileCap int64 = 1024 * 1024 * 16 // 16 MByte
+		if sizeWithCurrentFile > fileCap && len(currentChunk) > 0 {
 			returnArray = append(returnArray, currentChunk)
 			currentChunk = make([]string, 0)
-			currentChunkSize = 0
+			sizeWithCurrentFile = 0
 		}
 
 		currentChunk = append(currentChunk, file)
@@ -59,7 +60,6 @@ func ZipUpFiles(directory string, cfg config.AppConfig) string {
 
 	chunks := createFileChunks(fileNames)
 	for i, chunk := range chunks {
-
 		name := filepath.Join(cfg.OutputDir, namePrefix, strconv.Itoa(i+1)+".zip")
 		color.Green("Building chunk " + name)
 		zipUpChunk(chunk, name)
@@ -96,7 +96,9 @@ func zipUpChunk(chunk []string, name string) {
 			color.Red(err.Error())
 			continue
 		}
+
 		_, err = io.Copy(fileInArchive, file)
+
 		if err != nil {
 			color.Red("Failed to put File into Archive: " + fileName)
 		}

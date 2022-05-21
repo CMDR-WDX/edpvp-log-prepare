@@ -7,7 +7,6 @@ import (
 	"edpvp-log-prepare/zipper"
 	"fmt"
 	"github.com/fatih/color"
-	"github.com/teamseodo/cli"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -67,7 +66,7 @@ func aggregateLogFiles(config config.AppConfig) []string {
 	return relevantFiles
 }
 
-func MainCommand(command *cli.Command) {
+func MainCommand() {
 	hasConfig, cfg := config.GetConfig()
 	if !hasConfig {
 		color.Yellow("This appears to be your first time running this program. \n" +
@@ -85,6 +84,10 @@ func MainCommand(command *cli.Command) {
 
 	if len(relevantLogFiles) == 0 {
 		color.Red("No relevant Log files were found. No ZIP has been generated...")
+		color.Green("Press any key to continue...")
+		reader := bufio.NewReader(os.Stdin)
+		reader.Discard(reader.Buffered())
+		_, _ = reader.ReadString('\n')
 		return
 	}
 

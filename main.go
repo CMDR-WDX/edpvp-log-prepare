@@ -2,32 +2,24 @@ package main
 
 import (
 	"edpvp-log-prepare/cmd"
-	"github.com/fatih/color"
-	"github.com/teamseodo/cli"
-	"log"
 	"os"
+	"path/filepath"
 )
 
 func main() {
-	mainCommand := cli.NewCommand("app", "app", "The Default Command – "+
-		"Use it to build the ZIP files")
-	mainCommand.Do(cmd.MainCommand)
+	_, executingFileName := filepath.Split(os.Args[0])
 
-	help, err := mainCommand.FindHelp(os.Args[1:])
-	if err != nil {
-		log.Fatal(err)
+	if len(os.Args) == 1 {
+		cmd.MainCommand()
+	} else if len(os.Args) > 1 {
+		if os.Args[1] == "config" {
+			cmd.RenewConfigCommand()
+		} else {
+			PrintHelp(executingFileName)
+		}
+	} else {
+		PrintHelp(executingFileName)
 	}
-	help.ShowHelp()
 
-	command, err := mainCommand.Parse(os.Args[1:])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	color.Blue("Running edpvp-log-prepare v%s\n", VERSION)
-	err = command.Run()
-	if err != nil {
-		command.Help().ShowHelp()
-	}
 	CheckUpdate()
 }
