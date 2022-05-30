@@ -46,6 +46,8 @@ func FilePathsAsLogs(logs []string) ([]Log, error) {
 }
 
 func CreateZipFilesAndMoveToOutputDirectory(logsInTempDir []Log, baseOutDir string) (string, error) {
+	color.Blue("Starting Zipping...")
+	timeBefore := time.Now()
 	// Create a directory under BaseOutDir with the current Timestamp
 	directoryName := filepath.Join(baseOutDir, generateDirectoryPrefix())
 	err := os.MkdirAll(directoryName, 0633)
@@ -57,6 +59,10 @@ func CreateZipFilesAndMoveToOutputDirectory(logsInTempDir []Log, baseOutDir stri
 	if err != nil {
 		return "", err
 	}
+
+	timeDiff := time.Now().Sub(timeBefore)
+
+	color.Blue("Zipping Done. Took a total of %f Seconds", timeDiff.Seconds())
 
 	return directoryName, nil
 }
@@ -81,6 +87,7 @@ func zipUpLogs(logs []Log, outDir string) ([]string, error) {
 
 	if info.Size() > ZipFileMaxSize {
 		// The Zip is greater than 8 MB. Split up the Zip File in half. Can be solved recursively
+		color.Yellow("Chunk %s is too big (%f MB). Splitting up", info.Name(), float64(info.Size())/float64(1024*1024))
 		var cutOff int64 = 0
 		// calculate cutoff
 		for _, log := range logs {
@@ -116,14 +123,13 @@ func zipUpLogs(logs []Log, outDir string) ([]string, error) {
 			return make([]string, 0), err
 		}
 		for _, entry := range leftSizeResult {
-			color.Green(entry)
 			returnArr = append(returnArr, entry)
 		}
 		for _, entry := range rightSizeResult {
-			color.Red(entry)
 			returnArr = append(returnArr, entry)
 		}
 	} else {
+		color.Green("Chunk %s zipped up successfully (%f MB)", info.Name(), float64(info.Size())/float64(1024*1024))
 		returnArr = append(returnArr, result.outputFile)
 	}
 	return returnArr, nil

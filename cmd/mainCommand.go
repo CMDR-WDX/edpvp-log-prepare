@@ -68,7 +68,6 @@ func aggregateLogFiles(config config.AppConfig) []string {
 
 func MainCommand() {
 	hasConfig, cfg := config.GetConfig()
-	cfg.LastExecutionTimeStamp = 0 // TODO
 	if !hasConfig {
 		color.Yellow("This appears to be your first time running this program. \n" +
 			"This will run you through a Configuration of the App")
