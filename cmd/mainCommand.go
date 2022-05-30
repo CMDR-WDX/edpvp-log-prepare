@@ -99,9 +99,16 @@ func MainCommand() {
 	}
 	defer os.Remove(tempDir)
 	color.White(tempDir)
-	moveRelevantFilesToTempDir(relevantLogFiles, tempDir)
+	logFilesInTempdir, err := zipper.FilePathsAsLogs(moveRelevantFilesToTempDir(relevantLogFiles, tempDir))
+	if err != nil {
+		panic(err)
+	}
 
-	directoryPath := zipper.ZipUpFiles(tempDir, cfg)
+	//directoryPath := zipper.ZipUpFiles(tempDir, cfg)
+	directoryPath, err := zipper.CreateZipFilesAndMoveToOutputDirectory(logFilesInTempdir, cfg.OutputDir)
+	if err != nil {
+		panic(err)
+	}
 	cfg.LastExecutionTimeStamp = time.Now().Unix()
 	err = config.SetConfig(cfg)
 	if err != nil {
@@ -120,7 +127,9 @@ func MainCommand() {
 
 }
 
-func moveRelevantFilesToTempDir(logFiles []string, tempDir string) {
+func moveRelevantFilesToTempDir(logFiles []string, tempDir string) []string {
+	filepaths := make([]string, 0, len(logFiles))
+
 	for _, file := range logFiles {
 		_, justFileName := filepath.Split(file)
 		newFileName := util.ConvertOddyToHorizonsName(justFileName)
@@ -129,11 +138,14 @@ func moveRelevantFilesToTempDir(logFiles []string, tempDir string) {
 			fmt.Println(err)
 			continue
 		}
-
-		err = ioutil.WriteFile(filepath.Join(tempDir, newFileName), fileContent, 0644)
+		fp := filepath.Join(tempDir, newFileName)
+		err = ioutil.WriteFile(fp, fileContent, 0644)
 		if err != nil {
 			fmt.Println(err)
 			continue
 		}
+		filepaths = append(filepaths, fp)
 	}
+
+	return filepaths
 }
