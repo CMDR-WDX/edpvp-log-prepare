@@ -1,15 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"github.com/fatih/color"
 	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
 
-func CheckUpdate() {
+func CheckUpdate(blocking bool) {
 	fullUrl := "https://raw.githubusercontent.com/CMDR-WDX/edpvp-log-prepare/master/version"
 
 	buf := new(bytes.Buffer)
@@ -34,14 +36,14 @@ func CheckUpdate() {
 
 	versionAsString := strings.Trim(strings.Split(buf.String(), "\n")[0], " ")
 
-	compareWithCurrentVersion(versionAsString, VERSION)
+	compareWithCurrentVersion(versionAsString, VERSION, blocking)
 }
 
 func PrettyPrintVersion(version string) string {
 	return strings.Replace(version, "-", "pre-", -1)
 }
 
-func compareWithCurrentVersion(online string, local string) {
+func compareWithCurrentVersion(online string, local string, blocking bool) {
 
 	onlineArr := strings.Split(online, ".")
 	localArr := strings.Split(local, ".")
@@ -78,5 +80,11 @@ func compareWithCurrentVersion(online string, local string) {
 		color.Yellow("*** NEW VERSION AVAILABLE ***\nCurrent Version: v%s\nAvailable Version: v%s\n"+
 			"Get the Update at https://github.com/CMDR-WDX/edpvp-log-prepare/releases\n"+
 			"***                       ***", PrettyPrintVersion(local), PrettyPrintVersion(online))
+		if blocking {
+			color.Green("Press any key to continue...")
+			reader := bufio.NewReader(os.Stdin)
+			reader.Discard(reader.Buffered())
+			_, _ = reader.ReadString('\n')
+		}
 	}
 }

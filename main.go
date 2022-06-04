@@ -20,6 +20,5 @@ func main() {
 	} else {
 		PrintHelp(executingFileName)
 	}
-
-	CheckUpdate()
+	CheckUpdate(true)
 }

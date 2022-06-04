@@ -53,8 +53,8 @@ func getNewLogFileLocation(reader *bufio.Reader) string {
 		fmt.Print(folderPath)
 		color.Unset()
 		fmt.Println(" . Should this be where I look for Elite logs?")
-		color.Green("Y/N")
-		if util.GetYesNo(reader) {
+		color.Green("[Y]/N")
+		if util.GetYesNo(reader, true) {
 			return folderPath
 		}
 		exists = false
@@ -94,8 +94,8 @@ func getNewLogFileLocation(reader *bufio.Reader) string {
 			if !doesContainLogFiles {
 				color.Red("The Folder you provided does no contain any .log files. Are you sure this is the" +
 					"correct folder?")
-				color.Green("Y/N")
-				if !util.GetYesNo(reader) {
+				color.Green("Y/[N]")
+				if !util.GetYesNo(reader, false) {
 					continue
 				}
 			}
@@ -119,8 +119,8 @@ func BuildNewConfigFromScratch() (config.AppConfig, error) {
 	color.Blue("\n\n\n[3/%d] === Whitelist CMDRs", ConfigLen)
 	color.White("This tool can make sure that only Log Files from specific CMDRs are " +
 		"Zipped to be sent to the bot. Do you want to filter specific CMDRs? ")
-	color.Green("Y/N")
-	if util.GetYesNo(reader) {
+	color.Green("Y/[N]")
+	if util.GetYesNo(reader, false) {
 		cfg.CmdrInclude = getCommanderWhitelist(reader)
 	} else {
 		cfg.CmdrInclude = make([]string, 0)
@@ -191,8 +191,8 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 
 		if len(cmdrs) == 0 {
 			color.Yellow("No CMDRs entered. This will disable filtering. Is this okay?")
-			color.Green("Y/N")
-			if util.GetYesNo(reader) {
+			color.Green("Y/[N]")
+			if util.GetYesNo(reader, false) {
 				return make([]string, 0)
 			} else {
 				continue
@@ -205,8 +205,8 @@ func getCommanderWhitelist(reader *bufio.Reader) []string {
 			color.White("\tCMDR %s", cmdr)
 		}
 
-		color.Green("Is this correct? Y/N")
-		if util.GetYesNo(reader) {
+		color.Green("Is this correct? [Y]/N")
+		if util.GetYesNo(reader, true) {
 			return cmdrs
 		}
 	}
@@ -219,8 +219,8 @@ func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 	color.White("This defines where the output ZIP files are located. This defaults to logLocation/#edpvp, or in" +
 		" your instance: \n")
 	color.Yellow(returnFilePath)
-	color.Green("Is the default path okay? Y/N")
-	isInputOkay := util.GetYesNo(reader)
+	color.Green("Is the default path okay? [Y]/N")
+	isInputOkay := util.GetYesNo(reader, true)
 	for !isInputOkay {
 		color.Green("Please enter where you want the output ZIPs to be placed")
 		reader.Discard(reader.Buffered())
@@ -239,8 +239,8 @@ func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 			if os.IsNotExist(err) {
 				color.Yellow("%s does not exists. The program will try to create that directory "+
 					"when saving files. Is that okay?", userInput)
-				color.Green("Y/N")
-				if util.GetYesNo(reader) {
+				color.Green("[Y]/N")
+				if util.GetYesNo(reader, true) {
 					returnFilePath = userInput
 					isInputOkay = true
 				}
@@ -251,8 +251,8 @@ func getNewOutputDir(logPath string, reader *bufio.Reader) string {
 			color.Red("The provided Path is not a directory. Try again")
 		} else {
 			color.White("Found Directory %s", userInputData)
-			color.Green("Set this Directory as Output Directory? Y/N")
-			if util.GetYesNo(reader) {
+			color.Green("Set this Directory as Output Directory? [Y]/N")
+			if util.GetYesNo(reader, true) {
 				returnFilePath = userInput
 				isInputOkay = true
 			}

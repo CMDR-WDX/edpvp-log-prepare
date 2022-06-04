@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func GetYesNo(reader *bufio.Reader) bool {
+func GetYesNo(reader *bufio.Reader, defaultValue bool) bool {
 	for true {
 		var userInput string
 		reader.Discard(reader.Buffered())
@@ -19,9 +19,14 @@ func GetYesNo(reader *bufio.Reader) bool {
 		}
 
 		trimmed := strings.Trim(userInput, " ")
+		if len(trimmed) == 0 {
+			return defaultValue
+		}
+
 		if len(trimmed) != 1 {
 			continue
 		}
+
 		if trimmed[0] == 'n' || trimmed[0] == 'N' {
 			return false
 		} else if trimmed[0] == 'y' || trimmed[0] == 'Y' {
