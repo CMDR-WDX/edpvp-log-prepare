@@ -114,11 +114,12 @@ func MainCommand() {
 	if err != nil {
 		panic(err)
 	}
+
 	color.Blue("\n\nDone building ZIP files. Do you want to open the directory?")
 	color.Blue(directoryPath)
-	color.Green("Y/N")
+	color.Green("[Y]/N")
 
-	if util.GetYesNo(bufio.NewReader(os.Stdin)) {
+	if util.GetYesNo(bufio.NewReader(os.Stdin), true) {
 		err := open.Run(directoryPath)
 		if err != nil {
 			panic(err)

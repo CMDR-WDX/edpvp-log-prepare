@@ -118,7 +118,7 @@ func zipUpLogs(logs []Log, outDir string) ([]string, error) {
 		if err != nil {
 			return make([]string, 0), err
 		}
-		rightSizeResult, err := zipUpLogs(leftSide, outDir)
+		rightSizeResult, err := zipUpLogs(rightSide, outDir)
 		if err != nil {
 			return make([]string, 0), err
 		}
